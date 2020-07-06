@@ -16,6 +16,7 @@ description: 闭锁、FutureTask、信号量、栅栏等同步工具类的用法
 ## 闭锁
 
 **主要方法**：
+
 | 方法 | 返回值 | 描述 |
 |:---:|:---:|:---:|
 | countDown() | void | 计数器递减，如果计数达到零，释放所有等待的线程 |
@@ -67,6 +68,7 @@ public ZipOutputStream countDownLatchTest() throws Exception {
 ## FutureTask
 
 **主要方法**：
+
 | 方法 | 返回值 | 描述 |
 |:---:|:---:|:---:|
 | get() | V | 阻塞方法，等待任务完成之后才返回结果 |
@@ -112,6 +114,7 @@ public ZipOutputStream futureTaskTest() throws Exception {
 ## 信号量
 
 **主要方法**：
+
 | 方法 | 返回值 | 描述 |
 |:---:|:---:|:---:|
 | acquire() | void | 从信号量池中获取许可，如果没有则阻塞 |
@@ -173,6 +176,7 @@ public ZipOutputStream countDownLatchTest() throws InterruptedException {
 ## 栅栏
 
 **主要方法**：
+
 | 方法 | 返回值 | 描述 |
 |:---:|:---:|:---:|
 | await() | int | 阻塞等待所有线程都已经调用该方法|
