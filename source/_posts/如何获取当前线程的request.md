@@ -2,6 +2,7 @@
 title: 如何获取当前线程的request
 date: 2020-05-25 10:41:01
 tags: Spring MVC
+description: 如何线程安全地获取当前客户端的 request 请求
 ---
 
 ## 概述:
