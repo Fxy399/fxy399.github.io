@@ -350,7 +350,7 @@ codeblock:
   # See: https://github.com/highlightjs/highlight.js/tree/master/src/styles
   theme:
     light: default
-    dark: dark
+    dark: dark 
   # Add copy button on codeblock
   copy_button:
     enable: false
@@ -810,7 +810,7 @@ pdf:
 
 # Mermaid tag
 mermaid:
-  enable: false
+  enable: true
   # Available themes: default | dark | forest | neutral
   theme: forest
 
