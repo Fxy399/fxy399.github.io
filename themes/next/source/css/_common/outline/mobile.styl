@@ -7,14 +7,14 @@
 
 +mobile-small() {
   // For Pisces & Gemini schemes only wider width (remove main blocks in Gemini).
-  .content-wrap {
+  .main-inner {
     padding: initial !important;
   }
 
   // For all schemes wider width.
   .posts-expand {
-    .post-meta {
-      margin: 3px 0 10px 0 !important;
+    .post-header {
+      margin-bottom: 10px !important;
     }
   }
 
@@ -24,15 +24,10 @@
     padding: $content-mobile-padding 18px $content-mobile-padding !important;
   }
 
-  .posts-collapse {
-    margin-left: 0;
-    margin-right: 0;
-  }
-
   .post-body {
     // For headers narrow width.
     h1, h2, h3, h4, h5, h6 {
-      margin: 10px 0 8px;
+      margin: 20px 0 8px;
     }
 
     // Rewrite paddings & margins inside tags.
@@ -44,7 +39,7 @@
 
     // For paragraphs narrow width.
     > p {
-      margin: 0 0 10px 0;
+      margin: 0 0 10px;
     }
 
     // Rewrite paddings & margins inside tags.
@@ -68,7 +63,7 @@
     }
 
     .tabs .tab-content .tab-pane {
-      padding: 10px 10px 0 10px !important;
+      padding: 10px 10px 0 !important;
     }
   }
 

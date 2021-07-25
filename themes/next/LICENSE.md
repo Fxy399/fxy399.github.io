@@ -26,7 +26,6 @@ along with this program; if not, see: https://www.gnu.org/licenses/agpl.txt
      with their authors and provides to see for this changes publicly.
 
 * b) For any part of the covered work in which the copyright not specified,
-     except of third party libraries ('[source/lib/*](source/lib)') and '\*custom.\*' files,
      will mean this part owned by «NexT» in accord with terms in this file.
 
 * c) A covered work must retain «NexT» official website link
@@ -40,7 +39,7 @@ along with this program; if not, see: https://www.gnu.org/licenses/agpl.txt
      ```
      Collaborators, best contributors and all authors specified in the
      '[docs/AUTHORS.md][AUTHORS]' file of «NexT» repository under the
-     'https://github.com/theme-next' organization can ignore theme info link
+     'https://github.com/next-theme' organization can ignore theme info link
      requirements.
 
 Anyone can be released from the requirements of the license by purchasing
@@ -51,9 +50,6 @@ These activities include:
   1. Access to private repository with various premium features.
   2. Priority support for resolve all possible issues with «NexT».
   3. Priority support for implement all possible features to «NexT».
-
-  For more information, please contact «NexT» Organization at this
-address: support@theme-next.org
 
 <p align="center">This license also available in <a href="docs/LICENSE.txt">text format</a>.</p>
 
