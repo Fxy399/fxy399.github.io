@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"www.fungnet.xyz","root":"/","images":"/images","scheme":"Gemini","version":"8.6.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+<meta name="description" content="如何线程安全地获取当前客户端的 request 请求">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何获取当前线程的request">
+<meta property="og:url" content="https://www.fungnet.xyz/2020/05/25/%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E7%BA%BF%E7%A8%8B%E7%9A%84request/">
+<meta property="og:site_name" content="DogeFung&#39;s Blog">
+<meta property="og:description" content="如何线程安全地获取当前客户端的 request 请求">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fxy399/myPicGo/master/i2mago/img/user/img20200514165044.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Fxy399/myPicGo/master/i2mago/img/user/img20200515104335.png">
+<meta property="article:published_time" content="2020-05-25T02:41:01.000Z">
+<meta property="article:modified_time" content="2020-07-05T08:21:03.113Z">
+<meta property="article:author" content="DogeFung">
+<meta property="article:tag" content="Spring MVC">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Fxy399/myPicGo/master/i2mago/img/user/img20200514165044.png">
+
+
+<link rel="canonical" href="https://www.fungnet.xyz/2020/05/25/%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E7%BA%BF%E7%A8%8B%E7%9A%84request/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://www.fungnet.xyz/2020/05/25/%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E7%BA%BF%E7%A8%8B%E7%9A%84request/","path":"2020/05/25/如何获取当前线程的request/","title":"如何获取当前线程的request"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>如何获取当前线程的request | DogeFung's Blog</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">DogeFung's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-movie"><a href="/movie/" rel="section"><i class="fa fa-video fa-fw"></i>movie</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">概述:</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E4%BB%A3%E7%A0%81"><span class="nav-number">2.</span> <span class="nav-text">线程不安全的代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%B3%951-request-%E4%BD%9C%E4%B8%BA%E5%8F%82%E6%95%B0"><span class="nav-number">3.</span> <span class="nav-text">方法1 request 作为参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%B3%952-%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5"><span class="nav-number">4.</span> <span class="nav-text">方法2 依赖注入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%B3%953-%E4%BB%8E-RequestContextHolder-%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E7%BA%BF%E7%A8%8B%E7%9A%84-request"><span class="nav-number">5.</span> <span class="nav-text">方法3 从 RequestContextHolder 获取当前线程的 request</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-overview">
+            <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="DogeFung"
+      src="/images/myAvatar.png">
+  <p class="site-author-name" itemprop="name">DogeFung</p>
+  <div class="site-description" itemprop="description">Do not go gentle into that good night</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://www.fungnet.xyz/2020/05/25/%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E7%BA%BF%E7%A8%8B%E7%9A%84request/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/myAvatar.png">
+      <meta itemprop="name" content="DogeFung">
+      <meta itemprop="description" content="Do not go gentle into that good night">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="DogeFung's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          如何获取当前线程的request
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-05-25 10:41:01" itemprop="dateCreated datePublished" datetime="2020-05-25T10:41:01+08:00">2020-05-25</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2020-07-05 16:21:03" itemprop="dateModified" datetime="2020-07-05T16:21:03+08:00">2020-07-05</time>
+      </span>
+
+  
+</div>
+
+            <div class="post-description">如何线程安全地获取当前客户端的 request 请求</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="概述"><a href="#概述" class="headerlink" title="概述:"></a>概述:</h2><p>在使用Spring MVC 做开发时，经常需要获取 request 信息，例如获取客户端 ip 地址，请求的 URL， header 里的 cookie、token 等信息。<br>那么如何线程安全地获取 request 信息就显得尤为重要。</p>
+<h2 id="线程不安全的代码"><a href="#线程不安全的代码" class="headerlink" title="线程不安全的代码"></a>线程不安全的代码</h2><p>我们先来看看错误的代码演示</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">BaseController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> HttpServletRequest request;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ModelAttribute</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">(HttpServletRequest request)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.request = request;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这段代码是将 request 作为参数传入 BaseController 基类里，并且将 HttpServletRequest 作为类的全局变量(成员变量)。</p>
+<p>对于 tomcat 等 web 容器来说，它是并发地去处理 HTTP 请求的，BaseController 类接收到的每个 request 请求都有可能改变 HttpServletRequest 全局变量，造成线程安全问题。</p>
+<p>形象一点：<br>我们假设A向系统发送 HTTP 请求,并执行了 init()方法,由于 Spring 默认每一个 bean 都是单例模式，此时B也向系统发送请求并执行 init() 方法,修改了 HttpServletRequest 这个属性，此时对于A来说，HttpServletRequest 这个属性已经被B改变，就会引发线程安全问题。</p>
+<p>那么如何才能做到线程安全地获取 request 请求呢?</p>
+<h2 id="方法1-request-作为参数"><a href="#方法1-request-作为参数" class="headerlink" title="方法1 request 作为参数"></a>方法1 request 作为参数</h2><p>这种实现方式最为简单</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestController</span> </span>&#123;</span><br><span class="line">    <span class="meta">@RequestMapping(&quot;/test&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">(HttpServletRequest req)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        <span class="comment">// 模拟程序执行了一段时间</span></span><br><span class="line">        Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>优点: 线程安全。该方法将 request 对象作为参数赋值给 test() 方法, request 对象作为方法的成员变量,必然是线程安全的。<br>缺点: 代码冗余。很多请求都会用到 request 请求, 每次都要将 request 作为参数才可调用。并且如果方法复杂， 需要将 request 作为参数传来传去;</p>
+<h2 id="方法2-依赖注入"><a href="#方法2-依赖注入" class="headerlink" title="方法2 依赖注入"></a>方法2 依赖注入</h2><p>先上代码:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> HttpServletRequest request; <span class="comment">//依赖注入</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@RequestMapping(&quot;/test&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">test</span><span class="params">(HttpServletRequest request)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        <span class="comment">// 模拟程序执行了一段时间</span></span><br><span class="line">        Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用 @Autowired 依赖注入的方式 request 变成了线程安全。为什么会这样呢？我们去查找源码<br>首先断点一下:<br><img src="https://raw.githubusercontent.com/Fxy399/myPicGo/master/i2mago/img/user/img20200514165044.png" alt=""><br>request 使用了代理，我们先找到 AutowireUtils 的 ObjectFactoryDelegatingInvocationHandler 内部类</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> static <span class="class"><span class="keyword">class</span> <span class="title">ObjectFactoryDelegatingInvocationHandler</span> <span class="title">implements</span> <span class="title">InvocationHandler</span>, <span class="type">Serializable &#123;</span></span></span><br><span class="line"></span><br><span class="line">		<span class="keyword">private</span> <span class="keyword">final</span> ObjectFactory&lt;?&gt; objectFactory;</span><br><span class="line">		<span class="keyword">public</span> ObjectFactoryDelegatingInvocationHandler(ObjectFactory&lt;?&gt; objectFactory) &#123;</span><br><span class="line">			<span class="keyword">this</span>.objectFactory = objectFactory;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="meta">@Override</span></span><br><span class="line">		<span class="keyword">public</span> Object invoke(Object proxy, Method method, Object[] args) throws Throwable &#123;</span><br><span class="line">			String methodName = method.getName();</span><br><span class="line">			<span class="keyword">if</span> (methodName.equals(<span class="string">&quot;equals&quot;</span>)) &#123;</span><br><span class="line">				<span class="keyword">return</span> (proxy == args[<span class="number">0</span>]);</span><br><span class="line">			&#125; <span class="keyword">else</span> <span class="keyword">if</span> (methodName.equals(<span class="string">&quot;hashCode&quot;</span>)) &#123;</span><br><span class="line">				<span class="keyword">return</span> System.identityHashCode(proxy);</span><br><span class="line">			&#125; <span class="keyword">else</span> <span class="keyword">if</span> (methodName.equals(<span class="string">&quot;toString&quot;</span>)) &#123;</span><br><span class="line">				<span class="keyword">return</span> <span class="keyword">this</span>.objectFactory.toString();</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="comment">// 执行目标方法。注意：目标实例对象是objectFactory.getObject()</span></span><br><span class="line">			<span class="keyword">try</span> &#123;</span><br><span class="line">				<span class="keyword">return</span> method.invoke(<span class="keyword">this</span>.objectFactory.getObject(), args);</span><br><span class="line">			&#125; <span class="keyword">catch</span> (InvocationTargetException ex) &#123;</span><br><span class="line">				<span class="keyword">throw</span> ex.getTargetException();</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+<p>由上图代码发现 真正被代理的对象是 objectFactory.getObject()，而这里的 ObjectFactory 对象是传入的 WebApplicationContextUtils.RequestObjectFactory<br>那为什么使用的是 RequestObjectFactory 这个内部类呢?<br>WebApplicationContextUtils 里有这样一段代码:</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">public static void register<span class="constructor">WebApplicationScopes(ConfigurableListableBeanFactory <span class="params">beanFactory</span>, @Nullable ServletContext <span class="params">sc</span>)</span> &#123;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// web容器下新增支持了三种scope</span></span><br><span class="line">		<span class="comment">// 非web容器（默认）只有单例和多例两种嘛</span></span><br><span class="line">		beanFactory.register<span class="constructor">Scope(WebApplicationContext.SCOPE_REQUEST, <span class="params">new</span> RequestScope()</span>);</span><br><span class="line">		beanFactory.register<span class="constructor">Scope(WebApplicationContext.SCOPE_SESSION, <span class="params">new</span> SessionScope()</span>);</span><br><span class="line">		<span class="keyword">if</span> (sc != null) &#123;</span><br><span class="line">			ServletContextScope appScope = <span class="keyword">new</span> <span class="constructor">ServletContextScope(<span class="params">sc</span>)</span>;</span><br><span class="line">			beanFactory.register<span class="constructor">Scope(WebApplicationContext.SCOPE_APPLICATION, <span class="params">appScope</span>)</span>;</span><br><span class="line">			sc.set<span class="constructor">Attribute(ServletContextScope.<span class="params">class</span>.<span class="params">getName</span>()</span>, appScope);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">			<span class="comment">// ==================依赖注入=================</span></span><br><span class="line">			<span class="comment">// 这里决定了，若你依赖注入ServletRequest的话，就使用RequestObjectFactory来处理你</span></span><br><span class="line">			beanFactory.register<span class="constructor">ResolvableDependency(ServletRequest.<span class="params">class</span>, <span class="params">new</span> RequestObjectFactory()</span>);</span><br><span class="line">			beanFactory.register<span class="constructor">ResolvableDependency(ServletResponse.<span class="params">class</span>, <span class="params">new</span> ResponseObjectFactory()</span>);</span><br><span class="line">			beanFactory.register<span class="constructor">ResolvableDependency(HttpSession.<span class="params">class</span>, <span class="params">new</span> SessionObjectFactory()</span>);</span><br><span class="line">			beanFactory.register<span class="constructor">ResolvableDependency(WebRequest.<span class="params">class</span>, <span class="params">new</span> WebRequestObjectFactory()</span>);</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+<p>这里说明 web 容器初始化时就决定当依赖注入的对象为 ServletRequest 类时, 就会使用 RequestObjectFactory 类来做依赖注入的被代理类。<br>那么我们就来看看 RequestObjectFactory 的代码:</p>
+<figure class="highlight d"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * Factory that exposes the current request object on demand.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">@SuppressWarnings</span>(<span class="string">&quot;serial&quot;</span>)</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">class</span> RequestObjectFactory implements ObjectFactory&lt;ServletRequest&gt;, Serializable &#123;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">@Override</span></span><br><span class="line">		<span class="keyword">public</span> ServletRequest getObject() &#123;</span><br><span class="line">			<span class="keyword">return</span> currentRequestAttributes().getRequest();</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">@Override</span></span><br><span class="line">		<span class="keyword">public</span> String toString() &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="string">&quot;Current HttpServletRequest&quot;</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> ServletRequestAttributes currentRequestAttributes()</span><br><span class="line">	&#123;</span><br><span class="line">    	RequestAttributes requestAttr =                                      RequestContextHolder.currentRequestAttributes();</span><br><span class="line">		<span class="keyword">if</span> (!(requestAttr instanceof ServletRequestAttributes)) &#123;</span><br><span class="line">			<span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">&quot;Current request</span></span><br><span class="line"><span class="string">			is not a servlet request&quot;</span>);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> (ServletRequestAttributes) requestAttr;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+<p>到了这一步，已经很清晰了，我们通过 @Autowired 注解得到的 request 对象来就自于: RequestContextHolder.currentRequestAttributes() ，我们再看一下 RequestContextHolder 这个类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">RequestContextHolder</span>  </span>&#123;</span><br><span class="line">    <span class="comment">//RequestAttributes对象是线程局部变量（ThreadLocal）</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> ThreadLocal&lt;RequestAttributes&gt; requestAttributesHolder = <span class="keyword">new</span> NamedThreadLocal&lt;&gt;(<span class="string">&quot;Request attributes&quot;</span>);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> ThreadLocal&lt;RequestAttributes&gt; inheritableRequestAttributesHolder =</span><br><span class="line">			<span class="keyword">new</span> NamedInheritableThreadLocal&lt;&gt;(<span class="string">&quot;Request context&quot;</span>);</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> RequestAttributes <span class="title">currentRequestAttributes</span><span class="params">()</span> <span class="keyword">throws</span> IllegalStateException</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">    	RequestAttributes attributes = getRequestAttributes();</span><br><span class="line">    	<span class="keyword">if</span> (attributes == <span class="keyword">null</span>)</span><br><span class="line">    	&#123;</span><br><span class="line">    		<span class="keyword">if</span> (jsfPresent)</span><br><span class="line">    		&#123;</span><br><span class="line">    			attributes = FacesRequestAttributesFactory</span><br><span class="line">    			.getFacesRequestAttributes();</span><br><span class="line">    		&#125;</span><br><span class="line">    	&#125;</span><br><span class="line">    	<span class="keyword">return</span> attributes;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Nullable</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> RequestAttributes <span class="title">getRequestAttributes</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		RequestAttributes attributes = requestAttributesHolder.get();</span><br><span class="line">		<span class="keyword">if</span> (attributes == <span class="keyword">null</span>) &#123;</span><br><span class="line">			attributes = inheritableRequestAttributesHolder.get();</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> attributes;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>RequestContextHolder 的意思是请求上下文，并且我们发现内部的 RequestAttributes 是线程局部变量(ThreadLocaL)，这就说明 RequestAttributes 是线程安全的， 并且 request 也是线程安全的。</p>
+<p>到了这里你是否还有许多疑问，例如 request 是什么时候被赋值给 RequestAttributes的?<br>我们带着疑问去查看源码看看到底有谁调用过 setRequestAttributes() 方法</p>
+<p><img src="https://raw.githubusercontent.com/Fxy399/myPicGo/master/i2mago/img/user/img20200515104335.png" alt="setRequestAttributes被使用"><br>有两个地方调用过 setRequestAttributes 方法，那么到底是哪个方法真正设置了 request 请求？<br>我去百度了一下 RequestContextFilter 以及 FrameworksServlet 这两个类的作用。</p>
+<p><strong>RequestContextFilter:</strong><br>该过滤器RequestContextFilter主要是用于第三方serlvet比如JSF FacesServlet。<br>该过滤器将当前请求暴露到当前线程，这样我们可以在当前线程中获取当前的请求信息，就不需要把当前请求作为参数到处传递。 而且 DispatcherServlet 的工作同样是将当前请求暴露到当前线程，但是被拦截器拦截的请求并不会到达 DispatcherServlet，这时就需要用到 RequestContextFilter 了。</p>
+<blockquote>
+<p>该过滤器如果不是继承第三方 Servlet 基本上用不到，我们可以直接排除掉它</p>
+</blockquote>
+<p><strong>FrameworkServlet:</strong><br>我们来看一下源码:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">processRequest</span><span class="params">(HttpServletRequest request, HttpServletResponse response)</span></span></span><br><span class="line"><span class="function">			<span class="keyword">throws</span> ServletException, IOException</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">long</span> startTime = System.currentTimeMillis();</span><br><span class="line">	Throwable failureCause = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">	LocaleContext previousLocaleContext = LocaleContextHolder.getLocaleContext();</span><br><span class="line">	LocaleContext localeContext = buildLocaleContext(request);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//1. 获取当前线程的 RequestAttributes。为空</span></span><br><span class="line">	RequestAttributes previousAttributes = RequestContextHolder.getRequestAttributes();</span><br><span class="line">	<span class="comment">//2. 创建 RequestAttributes</span></span><br><span class="line">	ServletRequestAttributes requestAttributes = buildRequestAttributes(request, response, previousAttributes);</span><br><span class="line"></span><br><span class="line">	WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);</span><br><span class="line">	asyncManager.registerCallableInterceptor(FrameworkServlet.class.getName(), <span class="keyword">new</span> RequestBindingInterceptor());</span><br><span class="line">    <span class="comment">//3. 初始化 ContextHolders</span></span><br><span class="line">	initContextHolders(request, localeContext, requestAttributes);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initContextHolders</span><span class="params">(HttpServletRequest request,</span></span></span><br><span class="line"><span class="params"><span class="function">			<span class="meta">@Nullable</span> LocaleContext localeContext, <span class="meta">@Nullable</span> RequestAttributes requestAttributes)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> (localeContext != <span class="keyword">null</span>) &#123;</span><br><span class="line">			LocaleContextHolder.setLocaleContext(localeContext, <span class="keyword">this</span>.threadContextInheritable);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> (requestAttributes != <span class="keyword">null</span>) &#123;</span><br><span class="line">			RequestContextHolder.setRequestAttributes(requestAttributes, <span class="keyword">this</span>.threadContextInheritable);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span> (logger.isTraceEnabled()) &#123;</span><br><span class="line">			logger.trace(<span class="string">&quot;Bound request context to thread: &quot;</span> + request);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可见请求发送之后，FrameworkServlet 就会将 请求赋值给 RequestAttributes，之后 RequestContextHolder 再将请求设置为线程局部变量，完成了请求和线程绑定的操作。<br><strong>依赖注入流程:</strong><br>现在我们来捋一下刚才的流程：</p>
+<ol>
+<li>首先web 容器初始化时决定当依赖注入的对象为 ServletRequest 时, 使用 RequestObjectFactory 类来做依赖注入的被代理类。</li>
+<li>当我们在 HttpServletRequest 对象上使用 @Autowired 注解时，自动使用 RequestObjectFactory 类来做依赖注入的被代理类。</li>
+<li>ReauestObjectFactory 中的 request 请求对象来自于 RequestContextHolder，而 RequestContextHolder 中的 RequestAttributes 属于线程局部变量并且包含着 request 请求信息。</li>
+</ol>
+<p><strong>我们直接上结论:</strong></p>
+<blockquote>
+<p>@Autowired 注解的 HttpServletRequest 来自于 RequestContextHolder 中的线程局部变量 RequestAttributes</p>
+</blockquote>
+<h2 id="方法3-从-RequestContextHolder-获取当前线程的-request"><a href="#方法3-从-RequestContextHolder-获取当前线程的-request" class="headerlink" title="方法3 从 RequestContextHolder 获取当前线程的 request"></a>方法3 从 RequestContextHolder 获取当前线程的 request</h2><p>通过方法二我们已经得知 RequestContextHolder 中的 RequestAttributes 是线程安全的。那么我们就可以直接从 RequestContextHolder 获取线程安全的 request 请求啦。<br>代码如下：</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">public</span> static HttpServletRequest getCurrentRequest()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="attribute">RequestAttributes</span> ra = RequestContextHolder.getRequestAttributes();</span><br><span class="line">    <span class="attribute">ServletRequestAttributes</span> sra = (ServletRequestAttributes) ra;</span><br><span class="line">    <span class="attribute">HttpServletRequest</span> request = sra.getRequest();</span><br><span class="line">    <span class="attribute">return</span> request;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spring-MVC/" rel="tag"># Spring MVC</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/07/01/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B-%E5%90%8C%E6%AD%A5%E5%B7%A5%E5%85%B7%E7%B1%BB/" rel="next" title="Java并发编程--同步工具类">
+                  Java并发编程--同步工具类 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">DogeFung</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+  <script class="next-config" data-name="mermaid" type="application/json">{"enable":true,"theme":"forest","js":{"url":"https://cdn.jsdelivr.net/npm/mermaid@8.11.0/dist/mermaid.min.js","integrity":"sha256-sVAx+v/Q7v0Q2xm5vN7h5ccSna6gaLREhG9sF8pKT6I="}}</script>
+  <script src="/js/third-party/tags/mermaid.js"></script>
+
+
+  
+
+
+
+
+
+</body>
+</html>
