@@ -86,7 +86,7 @@ public class FunctionTest {
 public class Proxy implements java.io.Serializable {
     private static final WeakCache<ClassLoader, Class<?>[], Class<?>>
         proxyClassCache = new WeakCache<>(new KeyFactory(), new ProxyClassFactory());
-    
+
     /**
      * Returns an instance of a proxy class for the specified interfaces
      * that dispatches method invocations to the specified invocation
@@ -359,7 +359,7 @@ private static final class ProxyClassFactory
 public class ProxyGenerator {
     //
     private static final boolean saveGeneratedFiles = (Boolean)AccessController.doPrivileged(new GetBooleanAction("sun.misc.ProxyGenerator.saveGeneratedFiles"));
-    
+
     public static byte[] generateProxyClass(final String var0, Class<?>[] var1, int var2) {
         ProxyGenerator var3 = new ProxyGenerator(var0, var1, var2);
         //该方法生成字节码形式的代理类文件
@@ -422,7 +422,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.UndeclaredThrowableException;
 
-//代理类继承了 Proxy 类，并且实现了被代理接口 
+//代理类继承了 Proxy 类，并且实现了被代理接口
 public final class $Proxy4 extends Proxy implements HelloInterface {
     private static Method m1;
     private static Method m3;
@@ -501,7 +501,7 @@ public final class $Proxy4 extends Proxy implements HelloInterface {
 	//创建构造函数
 	final Constructor<?> cons = cl.getConstructor(constructorParams);
 	//通过构造函数实例化代理类
-	return cons.newInstance(new Object[]{h});	
+	return cons.newInstance(new Object[]{h});
 ```
 
 最终我们通过 Proxy.newProxyInstance() 创建代理类实例的方法得到的是一个增强后的代理类，该类实现了被代理类的方法。
@@ -510,7 +510,6 @@ public final class $Proxy4 extends Proxy implements HelloInterface {
 
 我们通过 Proxy.newProxyInstance() 创建代理类实例的方法得到的是一个增强后的代理类，该代理类继承了 Proxy 类，同时还实现了被代理类，并对被代理类进行增强。例如我们通过该代理类调用的 sayHello() 方法，实际上调用的是 HelloProxy 类中的增强方法 invoke() 方法。
 
+**题外话**
 
-
-
-
+本来学习完JDK动态代理实现原理之后，还想再做一个 Spring AOP 的源码分享，但是看完 AOP 源码之后我反而改变了想法。源码看似复杂，但是实际上实现方式还是 java 最基础的那几样，比如 AOP 的整个流程就是先获取被拦截的接口或者类，之后再根据被代理类是否接口类来选择使用 JDK 动态代理或者 CGLIB 动态代理， 最后发现 AOP 的实现原理最后使用的还是 Java 动态代理那一套。

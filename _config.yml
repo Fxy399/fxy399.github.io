@@ -41,7 +41,7 @@ external_link:
   exclude: ''
 filename_case: 0
 render_drafts: false
-post_asset_folder: false
+post_asset_folder: true
 relative_link: false
 future: true
 highlight:
@@ -99,7 +99,7 @@ theme: next
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
-  repository: https://github.com/Fxy399/myBlog.github.io.git
+  repository: https://github.com/Fxy399/fxy399.github.io.git
   branch: master
 
 # mermaid chart
