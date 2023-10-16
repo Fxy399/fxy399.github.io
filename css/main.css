@@ -17,10 +17,10 @@
   --btn-default-hover-bg: #222;
   --btn-default-hover-color: #fff;
   --btn-default-hover-border-color: #222;
-  --highlight-background: #fefbec;
-  --highlight-foreground: #6e6b5e;
-  --highlight-gutter-background: #efecdd;
-  --highlight-gutter-foreground: #7c796c;
+  --highlight-background: #f0f0f0;
+  --highlight-foreground: #444;
+  --highlight-gutter-background: #dedede;
+  --highlight-gutter-foreground: #555;
 }
 html {
   line-height: 1.15; /* 1 */
@@ -359,67 +359,97 @@ td {
   top: -5px;
   transform: rotate(-45deg);
 }
-/* Base16 Atelier Dune Light - Theme */
-/* by Bram de Haan (http://atelierbram.github.io/syntax-highlighting/atelier-schemes/dune) */
-/* Original Base16 color scheme by Chris Kempson (https://github.com/chriskempson/base16) */
+/*
 
-/* Atelier-Dune Comment */
-.hljs-comment,
-.hljs-quote {
-  color: #7d7a68;
-}
+Original highlight.js style (c) Ivan Sagalaev <maniac@softwaremaniacs.org>
 
-/* Atelier-Dune Red */
-.hljs-variable,
-.hljs-template-variable,
-.hljs-attribute,
-.hljs-tag,
-.hljs-name,
-.hljs-regexp,
-.hljs-link,
-.hljs-name,
-.hljs-selector-id,
-.hljs-selector-class {
-  color: #d73737;
-}
-
-/* Atelier-Dune Orange */
-.hljs-number,
-.hljs-meta,
-.hljs-built_in,
-.hljs-builtin-name,
-.hljs-literal,
-.hljs-type,
-.hljs-params {
-  color: #b65611;
-}
-
-/* Atelier-Dune Green */
-.hljs-string,
-.hljs-symbol,
-.hljs-bullet {
-  color: #60ac39;
-}
-
-/* Atelier-Dune Blue */
-.hljs-title,
-.hljs-section {
-  color: #6684e1;
-}
-
-/* Atelier-Dune Purple */
-.hljs-keyword,
-.hljs-selector-tag {
-  color: #b854d4;
-}
+*/
 
 .hljs {
   display: block;
   overflow-x: auto;
-  background: #fefbec;
-  color: #6e6b5e;
   padding: 0.5em;
+  background: #F0F0F0;
 }
+
+
+/* Base color: saturation 0; */
+
+.hljs,
+.hljs-subst {
+  color: #444;
+}
+
+.hljs-comment {
+  color: #888888;
+}
+
+.hljs-keyword,
+.hljs-attribute,
+.hljs-selector-tag,
+.hljs-meta-keyword,
+.hljs-doctag,
+.hljs-name {
+  font-weight: bold;
+}
+
+
+/* User color: hue: 0 */
+
+.hljs-type,
+.hljs-string,
+.hljs-number,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-quote,
+.hljs-template-tag,
+.hljs-deletion {
+  color: #880000;
+}
+
+.hljs-title,
+.hljs-section {
+  color: #880000;
+  font-weight: bold;
+}
+
+.hljs-regexp,
+.hljs-symbol,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-link,
+.hljs-selector-attr,
+.hljs-selector-pseudo {
+  color: #BC6060;
+}
+
+
+/* Language color: hue: 90; */
+
+.hljs-literal {
+  color: #78A960;
+}
+
+.hljs-built_in,
+.hljs-bullet,
+.hljs-code,
+.hljs-addition {
+  color: #397300;
+}
+
+
+/* Meta color: hue: 200 */
+
+.hljs-meta {
+  color: #1f7199;
+}
+
+.hljs-meta-string {
+  color: #4d99bf;
+}
+
+
+/* Misc effects */
 
 .hljs-emphasis {
   font-style: italic;
@@ -1009,10 +1039,6 @@ pre code {
 .post-body .note.danger h5,
 .post-body .note.danger h6 {
   color: #d9534f;
-}
-.mermaid {
-  margin-bottom: 20px;
-  text-align: center;
 }
 .pagination .prev,
 .pagination .next,
