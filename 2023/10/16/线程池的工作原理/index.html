@@ -30,7 +30,7 @@
 <meta property="og:image" content="https://www.funng.top/2023/10/16/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/%E7%BA%BF%E7%A8%8B%E6%B1%A0.awebp">
 <meta property="og:image" content="https://www.funng.top/2023/10/16/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%BB%A7%E6%89%BF%E5%85%B3%E7%B3%BB.png">
 <meta property="article:published_time" content="2023-10-16T09:25:36.000Z">
-<meta property="article:modified_time" content="2023-10-16T10:06:15.096Z">
+<meta property="article:modified_time" content="2023-10-17T03:57:34.769Z">
 <meta property="article:author" content="DogeFung">
 <meta property="article:tag" content="多线程">
 <meta name="twitter:card" content="summary">
@@ -121,7 +121,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9B%B8%E5%85%B3%E6%A6%82%E5%BF%B5%E6%80%BB%E8%A7%88"><span class="nav-number">1.</span> <span class="nav-text">线程池相关概念总览</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B1%A0%E7%9A%84%E6%80%9D%E6%83%B3"><span class="nav-number">1.1.</span> <span class="nav-text">池的思想</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E5%85%B3%E9%94%AE%E5%B1%9E%E6%80%A7"><span class="nav-number">1.2.</span> <span class="nav-text">线程池的关键属性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="nav-number">1.3.</span> <span class="nav-text">线程池的工作流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86"><span class="nav-number">1.4.</span> <span class="nav-text">线程池状态管理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B1%BB%E5%85%B3%E7%B3%BB%E6%A6%82%E8%A7%88"><span class="nav-number">2.1.</span> <span class="nav-text">类关系概览</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AbstractExecutorService-%E6%8A%BD%E8%B1%A1%E7%B1%BB"><span class="nav-number">2.1.1.</span> <span class="nav-text">AbstractExecutorService 抽象类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E6%8F%90%E4%BA%A4%E5%8E%9F%E7%90%86"><span class="nav-number">2.1.2.</span> <span class="nav-text">线程提交原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#execute-%E6%96%B9%E6%B3%95%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1"><span class="nav-number">2.1.2.1.</span> <span class="nav-text">execute 方法提交任务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E5%88%9B%E5%BB%BA%E6%97%B6%E6%9C%BA"><span class="nav-number">2.1.2.2.</span> <span class="nav-text">线程创建时机</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#addWorker-%E6%96%B9%E6%B3%95%E6%8F%90%E4%BA%A4%E7%BA%BF%E7%A8%8B"><span class="nav-number">2.1.2.3.</span> <span class="nav-text">addWorker 方法提交线程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Worker%E7%BA%BF%E7%A8%8B%E5%88%9B%E5%BB%BA"><span class="nav-number">2.1.3.</span> <span class="nav-text">Worker线程创建</span></a></li></ol></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9B%B8%E5%85%B3%E6%A6%82%E5%BF%B5%E6%80%BB%E8%A7%88"><span class="nav-number">1.</span> <span class="nav-text">线程池相关概念总览</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B1%A0%E7%9A%84%E6%80%9D%E6%83%B3"><span class="nav-number">1.1.</span> <span class="nav-text">池的思想</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E5%87%A0%E4%B8%AA%E5%85%B3%E9%94%AE%E5%B1%9E%E6%80%A7"><span class="nav-number">1.2.</span> <span class="nav-text">线程池的几个关键属性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="nav-number">1.3.</span> <span class="nav-text">线程池的工作流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%8A%B6%E6%80%81%E7%AE%A1%E7%90%86"><span class="nav-number">1.4.</span> <span class="nav-text">线程池状态管理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B1%BB%E5%85%B3%E7%B3%BB%E6%A6%82%E8%A7%88"><span class="nav-number">2.1.</span> <span class="nav-text">类关系概览</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AbstractExecutorService-%E6%8A%BD%E8%B1%A1%E7%B1%BB"><span class="nav-number">2.1.1.</span> <span class="nav-text">AbstractExecutorService 抽象类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E6%8F%90%E4%BA%A4%E5%8E%9F%E7%90%86"><span class="nav-number">2.1.2.</span> <span class="nav-text">线程提交原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#execute-%E6%96%B9%E6%B3%95%E6%8F%90%E4%BA%A4%E4%BB%BB%E5%8A%A1"><span class="nav-number">2.1.2.1.</span> <span class="nav-text">execute 方法提交任务</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%BA%BF%E7%A8%8B%E5%88%9B%E5%BB%BA%E6%97%B6%E6%9C%BA"><span class="nav-number">2.1.2.2.</span> <span class="nav-text">线程创建时机</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#addWorker-%E6%96%B9%E6%B3%95%E6%8F%90%E4%BA%A4%E7%BA%BF%E7%A8%8B"><span class="nav-number">2.1.2.3.</span> <span class="nav-text">addWorker 方法提交线程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Worker%E7%BA%BF%E7%A8%8B%E5%88%9B%E5%BB%BA"><span class="nav-number">2.1.3.</span> <span class="nav-text">Worker线程创建</span></a></li></ol></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -209,10 +209,16 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2023-10-16 17:25:36 / 修改时间：18:06:15" itemprop="dateCreated datePublished" datetime="2023-10-16T17:25:36+08:00">2023-10-16</time>
+      <time title="创建时间：2023-10-16 17:25:36" itemprop="dateCreated datePublished" datetime="2023-10-16T17:25:36+08:00">2023-10-16</time>
     </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2023-10-17 11:57:34" itemprop="dateModified" datetime="2023-10-17T11:57:34+08:00">2023-10-17</time>
+      </span>
 
   
 </div>
@@ -228,13 +234,13 @@
         <h1 id="线程池相关概念总览"><a href="#线程池相关概念总览" class="headerlink" title="线程池相关概念总览"></a>线程池相关概念总览</h1><p>本文主要侧重于从源码层面学习jdk8中线程池的实现原理。</p>
 <h2 id="池的思想"><a href="#池的思想" class="headerlink" title="池的思想"></a>池的思想</h2><p>因为线程资源十分宝贵，并且每次创建和销毁线程的开销都比较大，另一方面，如果创建太多的线程，也会消耗系统大量资源，降低系统吞吐量，甚至导致服务不可用。为了解决这些问题，提出一种基于池化思想管理和使用线程的机制，这就是我们的线程池。</p>
 <p>线程池的核心思想就是能做到线程复用，线程池中的线程执行完不会销毁，而是存留在内存中，等待执行下一个线程。</p>
-<h2 id="线程池的关键属性"><a href="#线程池的关键属性" class="headerlink" title="线程池的关键属性"></a>线程池的关键属性</h2><ul>
+<h2 id="线程池的几个关键属性"><a href="#线程池的几个关键属性" class="headerlink" title="线程池的几个关键属性"></a>线程池的几个关键属性</h2><ul>
 <li>corePoolSize： 核心线程数</li>
 <li>maximumPoolSize：最大线程数，线程池允许创建的最大线程数</li>
 <li>workQueue： 任务队列，BlockingQueue 接口的某个实现（常使用 ArrayBlockingQueue 和 LinkedBlockingQueue）</li>
 <li>keepAliveTime：空闲线程的保活时间，如果某线程的空闲时间超过这个值都没有任务给它做，那么可以被关闭了。注意这个值并不会对所有线程起作用，如果线程池中的线程数少于等于核心线程数 corePoolSize，那么这些线程不会因为空闲太长时间而被关闭，当然，也可以通过调用 <code>allowCoreThreadTimeOut(true)</code>使核心线程数内的线程也可以被回收。</li>
+<li>ThreadFactory：线程工厂，包装了许多针对线程的方法，比如可以设置线程名，方便调试</li>
 <li>rejectedExecutionHandler：拒绝策略</li>
-<li>ctl：线程池控制状态，使用原子整型包装。</li>
 </ul>
 <h2 id="线程池的工作流程"><a href="#线程池的工作流程" class="headerlink" title="线程池的工作流程"></a>线程池的工作流程</h2><p>线程池实际上采用的是：生产者-消费者模型，如下图:</p>
 <p><img src="%E7%BA%BF%E7%A8%8B%E6%B1%A0.awebp" alt="img"></p>
