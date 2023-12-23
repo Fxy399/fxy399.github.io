@@ -60,10 +60,10 @@ static final class Node {
 
     // ======== 下面的几个int常量是给waitStatus用的 ===========
     /** waitStatus value to indicate thread has cancelled */
-    //此线程已取消争抢这个锁
+    //此线程已取消争抢这个锁，后面遍历等待队列时，将会直接跳过本线程
     static final int CANCELLED =  1;
     /** waitStatus value to indicate successor's thread needs unparking */
-    //官方的描述是，其表示当前node的后继节点对应的线程需要被唤醒
+    //当前节点的 next 节点挂起了，需要被唤醒
     static final int SIGNAL    = -1;
     /** waitStatus value to indicate thread is waiting on condition */
     static final int CONDITION = -2;
@@ -103,6 +103,12 @@ static final class FairSync extends Sync {
     final void lock() {
         acquire(1);
     }
+    
+    public final void acquire(int arg) {
+        if (!tryAcquire(arg) &&
+            acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+            selfInterrupt();
+    }
 
     //尝试直接获取锁，返回值是boolean，代表是否获取到锁
     //返回true：1.没有线程在等待锁；2.重入锁，线程本来就持有锁，也就可以理所当然可以直接获取
@@ -141,7 +147,7 @@ static final class FairSync extends Sync {
     }
 }
 
-// 我们看到，这个方法，如果tryAcquire(arg) 返回true, 也就结束了。
+// 我们看到，这个方法，如果tryAcquire(arg) 返回true,说明本线程抢锁成功，将会往下执行被锁方法, 也就结束了。
 // 否则，acquireQueued方法会将线程压到队列中
 public final void acquire(int arg) { // 此时 arg == 1
     // 首先调用tryAcquire(1)一下，名字上就知道，这个只是试一试
@@ -188,20 +194,28 @@ final boolean acquireQueued(final Node node, int arg) {
     boolean failed = true;
     try {
         boolean interrupted = false;
+        //死循环，代表我要拿到锁资源，拿不到,就死等~~~
         for (;;) {
+            //当前节点的前一个节点
             final Node p = node.predecessor();
-            //如果 当前节点的前一个节点是 head 说明当前节点已经是阻塞队列第一个,所以当前节点直接尝试获取锁
+            //如果 当前节点的前一个节点是 head 代表当前节点排在等待队列第一位,所以当前节点直接尝试获取锁
             if (p == head && tryAcquire(arg)) {
                 //直接将当前节点设置为头节点,以此来将节点移除等待队列
                 setHead(node);
                 p.next = null; // help GC
                 failed = false;
-                return interrupted;
+                //这里返回 false， 中断标记，我们看回 acquire() 方法就可以得知如果返回 false 则不需要执行线程中断操作
+                return interrupted; 
             }
             // 到这里，说明上面的if分支没有成功，要么当前node本来就不是队头，
-            // 要么就是tryAcquire(arg)没有抢赢别人，继续往下看
+            // 要么就是tryAcquire(arg)没有抢赢别人，代表前面并没有拿到锁
+            //接下来就需要判断当前线程是否需要挂起等待
+            //为什么shouldParkAfterFailedAcquire(p, node)返回false的时候不直接挂起线程：
+            //我的理解是返回fasle的时候，node已经是head的直接后继节点了，但是你直接挂起了线程，就要走别人唤醒你的那几步代码。
+			//那这里完全可以重新走一遍for循环，直接尝试下获取锁，可能会更快。
             if (shouldParkAfterFailedAcquire(p, node) &&
-                parkAndCheckInterrupt())
+                parkAndCheckIntSerrupt())
+                //会进入到这里，说明线程中断状态为true,更新线程中断状态为true,并在后续循环中返回此状态
                 interrupted = true;
         }
     } finally {
@@ -215,7 +229,7 @@ final boolean acquireQueued(final Node node, int arg) {
 //返回 false 说明前驱节点并不是正常状态，会在上一个 acquireQueued 方法中重走此方法，最终结果就会返回 true
 private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
     int ws = pred.waitStatus;
-    // 前驱节点的 waitStatus == -1 ，说明前驱节点状态正常，当前线程需要挂起，直接可以返回true
+    // 前驱节点的 waitStatus == -1 ，说明前驱节点状态正常，当前线程需要挂起，直接可以返回true，那么根据上面代码，就会直接执行 parkAndCheckInterrupt() 方法，挂起当前线程
     if (ws == Node.SIGNAL)
         return true;
     // 前驱节点 waitStatus大于0 ，之前说过，大于0 说明前驱节点取消了排队。
@@ -223,16 +237,12 @@ private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
     // 所以下面这块代码说的是将当前节点的prev指向waitStatus<=0的节点，
     // 简单说，就是为了找到仍然在等待的队列头
     if (ws > 0) {
-        /*
-         * Predecessor was cancelled. Skip over predecessors and
-         * indicate retry.
-         */
         do {
             node.prev = pred = pred.prev;
         } while (pred.waitStatus > 0);
         pred.next = node;
     } else {
-        // 进入这个分支说明找到状态小于 -1 的节点了，直接将该节点状态修改为 SIGNAL
+        // 进入这个分支说明找到状态小于等于 0 的节点了，直接将该节点状态修改为 SIGNAL
         compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
     }
     return false;
@@ -273,7 +283,9 @@ private Node enq(final Node node) {
 * 如果直接获取锁失败，则将当前线程加入等待队列
 * 如果等待队列头为空，则表示队列为空，先设置一个空节点为队列头，再将当前线程入队，如果不为空则直接将当前线程入队尾
 * 如果当前线程位于等待队列头，继续抢夺锁
-* 如果当前线程不位于等待队列头，或者抢夺锁失败，就会将当前线程挂起，并遍历当前线程前面的所有 prev 节点，如果前置节点状态为 SIGNAL，则直接挂起当前线程，如果前置节点已经取消排队，则往上递归找到对应节点，并将节点状态修改为 SIGNAL，不管如何，最后都会将当前线程挂起。
+* 如果当前线程不位于等待队列头，或者抢夺锁失败，就会将当前线程挂起，S如果前置节点状态为 SIGNAL，则直接挂起当前线程，如果前置节点已经取消排队，则往上递归找到对应节点，并将节点状态修改为 SIGNAL，不管如何，最后都会将当前线程挂起。
+
+
 
 ## unlock() - 线程解锁
 
@@ -324,7 +336,7 @@ private void unparkSuccessor(Node node) {
         s = null;
         for (Node t = tail; t != null && t != node; t = t.prev)
             if (t.waitStatus <= 0)
-                s = t;节点
+                s = t;
     }
     if (s != null)
         // 唤醒线程
